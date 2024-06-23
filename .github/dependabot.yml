@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/src"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 15
+    labels:
+      - "area-dependencies"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"

@@ -1,0 +1,72 @@
+setup:
+  name: "GitHub Actions Runner Tools Setup"
+  description: "Install additional tools for GitHub Actions runners"
+  
+  steps:
+    - name: "Install GNU coreutils"
+      script: "scripts/install-coreutils.sh"
+      description: "Installs/verifies GNU Core Utilities"
+      
+    - name: "Install file tools"
+      script: "scripts/install-file-tools.sh"
+      description: "Installs file utilities (file, tree, time)"
+      
+    - name: "Install archive tools"
+      script: "scripts/install-archive-tools.sh"
+      description: "Installs compression and archive tools (p7zip, zip)"
+      
+    - name: "Install Python and pip"
+      script: "scripts/install-python.sh"
+      description: "Installs pip and Python dev tools (Python3 is pre-installed)"
+      
+    - name: "Install PowerShell"
+      script: "scripts/install-powershell.sh"
+      description: "Installs PowerShell Core"
+      
+    - name: "Install Node.js and npm"
+      script: "scripts/install-nodejs.sh"
+      description: "Installs Node.js and npm package manager"
+      
+    - name: "Install Azure CLI"
+      script: "scripts/install-azure-cli.sh"
+      description: "Installs Azure CLI"
+      
+    - name: "Install AzCopy"
+      script: "scripts/install-azcopy.sh"
+      description: "Installs AzCopy for Azure Storage"
+      
+    - name: "Install Ansible"
+      script: "scripts/install-ansible.sh"
+      description: "Installs Ansible using pip"
+      
+    - name: "Install Docker tools"
+      script: "scripts/install-docker-tools.sh"
+      description: "Installs Docker Compose plugin"
+      
+    - name: "Verify JSON/YAML tools"
+      script: "scripts/install-json-tools.sh"
+      description: "Verifies jq (pre-installed) and yq (installed in Dockerfile)"
+      
+    - name: "Install Kubernetes tools"
+      script: "scripts/install-kubernetes-tools.sh"
+      description: "Installs kubectl, helm, and kustomize"
+      
+    - name: "Install yamllint"
+      script: "scripts/install-yamllint.sh"
+      description: "Installs yamllint for YAML validation"
+      
+    - name: "Install GitHub CLI"
+      script: "scripts/install-github-cli.sh"
+      description: "Installs GitHub CLI (gh)"
+      
+    - name: "Install .NET SDK"
+      script: "scripts/install-dotnet-sdk.sh"
+      description: "Installs .NET SDK (both LTS and latest versions)"
+      
+    - name: "Install network tools"
+      script: "scripts/install-network-tools.sh"
+      description: "Installs comprehensive network utilities (DNS, IP, SSH, FTP, etc.)"
+      
+    - name: "Clean up"
+      command: "apt-get clean && rm -rf /var/lib/apt/lists/*"
+      description: "Clean up package caches"

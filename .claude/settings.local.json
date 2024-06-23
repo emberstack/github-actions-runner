@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker manifest inspect:*)",
+      "Bash(docker pull:*)",
+      "Bash(docker image inspect:*)",
+      "Bash(docker inspect:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(mv:*)",
+      "WebFetch(domain:learn.microsoft.com)",
+      "Bash(find:*)",
+      "Bash(chmod:*)"
+    ],
+    "deny": []
+  }
+}

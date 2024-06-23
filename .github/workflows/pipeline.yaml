@@ -1,0 +1,253 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - "**" # Matches all branches
+  pull_request:
+    branches:
+      - "**" # Matches all branches
+
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: "Forces a build even if no changes are detected"
+        required: true
+        default: "false"
+      force_release:
+        description: "Forces a release even if no changes are detected"
+        required: true
+        default: "false"
+
+concurrency:
+  group: pipeline-${{ github.ref_name }}
+  cancel-in-progress: true        
+
+env:
+  container_image: "github-actions-runner"
+  container_image_build_context: "src"
+  container_image_build_dockerfile: "src/Dockerfile"
+  container_image_repository_dockerhub: "emberstack"
+  container_image_repository_ghcr: "ghcr.io/emberstack"
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      pathsFilter_src: ${{ steps.pathsFilter.outputs.src }}
+      gitVersion_SemVer: ${{ steps.gitversion.outputs.GitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ steps.gitversion.outputs.GitVersion_AssemblySemFileVer }}
+      build: ${{ steps.evaluate_build.outputs.result }}
+      build_push: ${{ steps.evaluate_build_push.outputs.result }}
+      build_configuration: ${{ steps.evaluate_build_configuration.outputs.result }}
+      release: ${{ steps.evaluate_release.outputs.result }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: tools - dotnet - install
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.x"
+
+      - name: tools - gitversion - install
+        uses: gittools/actions/gitversion/setup@v4.0.1
+        with:
+          versionSpec: "6.x"
+          preferLatestVersion: true
+
+      - name: gitversion - execute
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.0.1
+        with:
+          configFilePath: GitVersion.yaml
+
+      - name: tools - detect changes
+        id: pathsFilter
+        uses: dorny/paths-filter@v3
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            src:
+              - '*.sln'
+              - '*.slnx'
+              - '*.props'
+              - 'src/**'
+            build:
+              - '*.sln'
+              - '*.slnx'
+              - '*.props'
+              - 'src/**'
+              - 'tests/**'
+              - 'playground/**'
+
+      - name: evaluate - build
+        id: evaluate_build
+        env:
+          RESULT: ${{ steps.pathsFilter.outputs.build == 'true' || github.event.inputs.force_build == 'true' || github.event.inputs.force_release == 'true' }}
+        run: echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+      - name: evaluate - build_push
+        id: evaluate_build_push
+        env:
+          RESULT: ${{ github.actor != 'dependabot[bot]' && github.event_name != 'pull_request' && (steps.pathsFilter.outputs.src == 'true' || github.event.inputs.force_build == 'true') }}
+        run: echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+      - name: evaluate - build_configuration
+        id: evaluate_build_configuration
+        env:
+          RESULT: ${{ github.ref == 'refs/heads/main' && 'Release' || 'Debug' }}
+        run: echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+      - name: evaluate - release
+        id: evaluate_release
+        env:
+          RESULT: ${{ github.ref == 'refs/heads/main' || github.event.inputs.force_release == 'true' }}
+        run: echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+
+  build:
+    name: build - ${{ matrix.platform }}
+    if: ${{ needs.discovery.outputs.build == 'true' }}
+    needs: [discovery]
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner }}
+    env:
+      build: ${{ needs.discovery.outputs.build }}
+      build_push: ${{ needs.discovery.outputs.build_push }}
+      build_configuration: ${{ needs.discovery.outputs.build_configuration }}
+      gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tools - docker - login ghcr.io
+        if: ${{ env.build_push == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ES_GITHUB_PAT }}
+
+      - name: tools - docker - login docker.io
+        if: ${{ env.build_push == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.ES_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.ES_DOCKERHUB_PAT }}
+
+      - name: tools - docker - setup buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: docker - build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.container_image_build_context }}
+          file: ${{ env.container_image_build_dockerfile }}
+          build-args: |
+            BUILD_CONFIGURATION=${{ env.build_configuration }}
+          push: ${{ env.build_push == 'true' }}
+          provenance: false
+          platforms: ${{ matrix.platform }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.vendor=https://github.com/${{ github.repository_owner }}
+            org.opencontainers.image.version=${{ env.gitVersion_SemVer }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          tags: |
+            ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+
+  manifest:
+    name: build - manifest
+    if: ${{ needs.discovery.outputs.build_push == 'true' }}
+    needs: [discovery, build]
+    runs-on: ubuntu-latest
+    env:
+      gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+    steps:
+      - name: tools - docker - login ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ES_GITHUB_PAT }}
+
+      - name: tools - docker - login docker.io
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.ES_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.ES_DOCKERHUB_PAT }}
+
+      - name: tools - docker - setup buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: docker - create and push multi-arch manifest
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }} \
+            --tag ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }} \
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-amd64 \
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-arm64
+
+  release:
+    name: release
+    if: ${{ needs.discovery.outputs.release == 'true' && github.ref == 'refs/heads/main' }}
+    needs: [discovery, manifest]
+    runs-on: ubuntu-latest
+    env:
+      gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+    steps:
+      - name: tools - docker - login ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ES_GITHUB_PAT }}
+
+      - name: tools - docker - login docker.io
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.ES_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.ES_DOCKERHUB_PAT }}
+
+      - name: tools - docker - setup buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: docker - tag and push - latest
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:latest \
+            --tag ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:latest \
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}
+
+      - name: github - release - create
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ github.repository }}
+          name: v${{ env.gitVersion_SemVer }}
+          tag_name: v${{ env.gitVersion_SemVer }}
+          body: The release process is automated.
+          generate_release_notes: true
+          token: ${{ secrets.ES_GITHUB_PAT }}
+
+
+
+

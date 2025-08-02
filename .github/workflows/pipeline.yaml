@@ -131,6 +131,9 @@ jobs:
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
       gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: tools - docker - login ghcr.io
         if: ${{ env.build_push == 'true' }}
         uses: docker/login-action@v3
@@ -170,13 +173,7 @@ jobs:
             ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
             ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
 
-      - name: artifacts - upload readme
-        if: ${{ matrix.platform == 'linux/amd64' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: readme
-          path: README.md
-          retention-days: 1
+
 
   manifest:
     name: build - manifest
@@ -186,6 +183,9 @@ jobs:
     env:
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: tools - docker - login ghcr.io
         uses: docker/login-action@v3
         with:
@@ -211,6 +211,13 @@ jobs:
             ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-amd64 \
             ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-arm64
 
+      - name: artifacts - upload readme
+        uses: actions/upload-artifact@v4
+        with:
+          name: readme
+          path: README.md
+          retention-days: 1
+
   release:
     name: release
     if: ${{ needs.discovery.outputs.release == 'true' && github.ref == 'refs/heads/main' }}
@@ -220,8 +227,6 @@ jobs:
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
       gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
       - name: tools - docker - login ghcr.io
         uses: docker/login-action@v3
         with:

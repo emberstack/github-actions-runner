@@ -35,5 +35,8 @@ USER runner
 # Set working directory
 WORKDIR /home/runner
 
+# Set .NET install directory to avoid permission issues
+ENV DOTNET_INSTALL_DIR=/home/runner/.dotnet
+
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

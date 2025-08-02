@@ -82,6 +82,10 @@ docker run -d \
 - `GITHUB_RUNNER_GID` (optional): Custom GID to create github-actions-runner group
 - `GITHUB_RUNNER_DOCKER_SOCK` (optional): Set to "true" to auto-configure Docker socket access
 
+##### Pre-configured Environment Variables
+The following environment variables are set in the Docker image:
+- `DOTNET_INSTALL_DIR`: Set to `/home/runner/.dotnet` to avoid permission issues when using actions/setup-dotnet
+
 ## Included Software
 
 ### Pre-installed in Base Image

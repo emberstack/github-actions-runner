@@ -4,6 +4,64 @@ set -e
 # Switch to runner user home directory
 cd /home/runner
 
+# Global variable to track if we're shutting down
+SHUTTING_DOWN=false
+
+# Signal handler for graceful shutdown
+handle_shutdown() {
+    local signal=$1
+    
+    if [ "$SHUTTING_DOWN" = "true" ]; then
+        echo "Shutdown already in progress..."
+        return
+    fi
+    
+    SHUTTING_DOWN=true
+    echo ""
+    echo "Received $signal signal, cleaning up..."
+    
+    # Kill the runner process if it's running
+    if [ -n "$RUNNER_PID" ]; then
+        echo "Stopping runner process (PID: $RUNNER_PID)..."
+        kill -TERM "$RUNNER_PID" 2>/dev/null || true
+        
+        # Wait for the runner to stop (max 30 seconds)
+        local count=0
+        while kill -0 "$RUNNER_PID" 2>/dev/null && [ $count -lt 30 ]; do
+            sleep 1
+            count=$((count + 1))
+        done
+        
+        # Force kill if still running
+        if kill -0 "$RUNNER_PID" 2>/dev/null; then
+            echo "Force stopping runner process..."
+            kill -KILL "$RUNNER_PID" 2>/dev/null || true
+        fi
+    fi
+    
+    # Remove runner configuration
+    cleanup_runner
+    
+    echo "Cleanup completed."
+    
+    # Exit with proper signal code
+    case "$signal" in
+        INT)
+            exit 130  # 128 + 2 (SIGINT)
+            ;;
+        TERM)
+            exit 143  # 128 + 15 (SIGTERM)
+            ;;
+        *)
+            exit 1
+            ;;
+    esac
+}
+
+# Set up signal handlers with proper exit codes
+trap 'handle_shutdown INT' INT
+trap 'handle_shutdown TERM' TERM
+
 # Function to handle runner cleanup
 cleanup_runner() {
     echo "Attempting to remove existing runner configuration..."
@@ -102,9 +160,15 @@ main() {
     # Configure the runner
     configure_runner
     
-    # Start the runner
+    # Start the runner in background to capture PID
     echo "Starting GitHub Actions runner..."
-    exec ./run.sh
+    ./run.sh &
+    RUNNER_PID=$!
+    
+    echo "Runner started with PID: $RUNNER_PID"
+    
+    # Wait for the runner process
+    wait $RUNNER_PID
 }
 
 # Execute main function

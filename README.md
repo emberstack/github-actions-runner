@@ -86,6 +86,14 @@ docker run -d \
 The following environment variables are set in the Docker image:
 - `DOTNET_INSTALL_DIR`: Set to `/home/runner/.dotnet` to avoid permission issues when using actions/setup-dotnet
 
+#### Graceful Shutdown
+The container handles shutdown signals (SIGTERM, SIGINT) gracefully:
+- Stops the running job (if any)
+- Removes the runner registration from GitHub
+- Ensures clean termination
+
+This automatic cleanup prevents orphaned runner registrations when containers are stopped.
+
 ## Included Software
 
 ### Pre-installed in Base Image

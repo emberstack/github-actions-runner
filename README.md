@@ -52,14 +52,13 @@ The following tools are already available in the GitHub Actions runner base imag
 - **unzip** - ZIP extraction
 - **sudo** - Privilege escalation
 - **Core Unix tools** - find, grep, sed, awk, perl, etc.
-
-### Core Utilities
 - **GNU Coreutils** - Essential Unix utilities (ls, cp, mv, cat, etc.)
-- **File Utilities**
-  - `file` - File type identification
-  - `findutils` - Find files and directories
-  - `tree` - Directory tree visualization
-  - `time` - Time command execution
+
+### File Utilities
+- **file** - File type identification
+- **findutils** - Find files and directories
+- **tree** - Directory tree visualization
+- **time** - Time command execution
 
 ### Programming Languages & Runtimes
 - **Python 3** with pip - Python interpreter and package manager

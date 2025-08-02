@@ -3,10 +3,6 @@ setup:
   description: "Install additional tools for GitHub Actions runners"
   
   steps:
-    - name: "Install GNU coreutils"
-      script: "scripts/install-coreutils.sh"
-      description: "Installs/verifies GNU Core Utilities"
-      
     - name: "Install file tools"
       script: "scripts/install-file-tools.sh"
       description: "Installs file utilities (file, tree, time)"
@@ -42,10 +38,6 @@ setup:
     - name: "Install Docker tools"
       script: "scripts/install-docker-tools.sh"
       description: "Installs Docker Compose plugin"
-      
-    - name: "Verify JSON/YAML tools"
-      script: "scripts/install-json-tools.sh"
-      description: "Verifies jq (pre-installed) and yq (installed in Dockerfile)"
       
     - name: "Install Kubernetes tools"
       script: "scripts/install-kubernetes-tools.sh"

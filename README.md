@@ -29,14 +29,58 @@ docker pull ghcr.io/emberstack/github-actions-runner:latest
 ```
 
 ### Run as GitHub Actions Runner
+
+#### Using Personal Access Token (PAT)
 ```bash
 docker run -d \
   --name github-runner \
-  -e RUNNER_NAME="my-runner" \
-  -e GITHUB_TOKEN="your-github-token" \
-  -e RUNNER_REPOSITORY_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_NAME="my-runner" \
+  -e GITHUB_RUNNER_LABELS="docker,linux" \
   emberstack/github-actions-runner:latest
 ```
+
+#### Using Registration Token
+```bash
+docker run -d \
+  --name github-runner \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_TOKEN="your-registration-token" \
+  -e GITHUB_RUNNER_NAME="my-runner" \
+  emberstack/github-actions-runner:latest
+```
+
+#### With Docker Socket Access
+```bash
+docker run -d \
+  --name github-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_DOCKER_SOCK="true" \
+  emberstack/github-actions-runner:latest
+```
+
+#### With Custom GID
+```bash
+docker run -d \
+  --name github-runner \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_GID="1001" \
+  emberstack/github-actions-runner:latest
+```
+
+#### Environment Variables
+- `GITHUB_RUNNER_URL` (required): Repository, organization, or enterprise URL
+- `GITHUB_RUNNER_PAT` or `GITHUB_RUNNER_TOKEN` (required): Authentication token
+- `GITHUB_RUNNER_NAME` (optional): Runner name (defaults to hostname)
+- `GITHUB_RUNNER_LABELS` (optional): Comma-separated list of labels
+- `GITHUB_RUNNER_GROUP` (optional): Runner group name
+- `GITHUB_RUNNER_WORKDIR` (optional): Working directory for jobs
+- `GITHUB_RUNNER_GID` (optional): Custom GID to create github-actions-runner group
+- `GITHUB_RUNNER_DOCKER_SOCK` (optional): Set to "true" to auto-configure Docker socket access
 
 ## Included Software
 
@@ -61,13 +105,11 @@ The following tools are already available in the GitHub Actions runner base imag
 - **time** - Time command execution
 
 ### Programming Languages & Runtimes
-- **Python 3** with pip - Python interpreter and package manager
 - **PowerShell Core** - Cross-platform PowerShell
 
 ### Cloud & Infrastructure Tools
 - **Azure CLI** - Azure cloud management
 - **AzCopy** - Azure Storage data transfer (latest release)
-- **Ansible** - Infrastructure automation (latest from pip)
 
 ### Container Tools
 - **Docker Compose Plugin** - Multi-container orchestration (latest)
@@ -230,14 +272,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by the need for comprehensive CI/CD environments
 - Thanks to all contributors and the open-source community
 
-## Note on .NET SDK, Node.js, and Kubernetes Tools
+## Note on Development Tools
 
-While installation scripts for these tools are available in the `src/_archive/scripts/` directory, we recommend using GitHub Actions' official setup actions or marketplace actions in your workflows:
+While installation scripts for various development tools are available in the `src/_archive/scripts/` directory, we recommend using GitHub Actions' official setup actions or marketplace actions in your workflows:
 
+### Languages & Runtimes
+- **Python/pip**: Use [`actions/setup-python`](https://github.com/actions/setup-python) - includes pip by default
 - **Node.js**: Use [`actions/setup-node`](https://github.com/actions/setup-node)
 - **.NET SDK**: Use [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet)
+
+### Infrastructure Tools
 - **kubectl**: Use [`azure/setup-kubectl`](https://github.com/azure/setup-kubectl)
 - **Helm**: Use [`azure/setup-helm`](https://github.com/azure/setup-helm)
 - **Kustomize**: Use [`imranismail/setup-kustomize`](https://github.com/imranismail/setup-kustomize)
+- **Ansible**: Install via pip after setting up Python
 
 These actions provide better caching, version management, and are optimized for CI/CD environments.

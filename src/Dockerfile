@@ -25,4 +25,15 @@ COPY setup.sh /
 # Run setup script with proper error handling
 RUN bash -e /setup.sh
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Switch back to runner user
 USER runner
+
+# Set working directory
+WORKDIR /home/runner
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

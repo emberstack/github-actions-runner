@@ -11,10 +11,6 @@ setup:
       script: "scripts/install-archive-tools.sh"
       description: "Installs compression and archive tools (p7zip, zip)"
       
-    - name: "Install Python and pip"
-      script: "scripts/install-python.sh"
-      description: "Installs pip and Python dev tools (Python3 is pre-installed)"
-      
     - name: "Install PowerShell"
       script: "scripts/install-powershell.sh"
       description: "Installs PowerShell Core"
@@ -27,17 +23,9 @@ setup:
       script: "scripts/install-azcopy.sh"
       description: "Installs AzCopy for Azure Storage"
       
-    - name: "Install Ansible"
-      script: "scripts/install-ansible.sh"
-      description: "Installs Ansible using pip"
-      
     - name: "Install Docker tools"
       script: "scripts/install-docker-tools.sh"
       description: "Installs Docker Compose plugin"
-      
-    - name: "Install yamllint"
-      script: "scripts/install-yamllint.sh"
-      description: "Installs yamllint for YAML validation"
       
     - name: "Install GitHub CLI"
       script: "scripts/install-github-cli.sh"

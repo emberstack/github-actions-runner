@@ -4,6 +4,10 @@ This directory contains installation scripts that have been archived in favor of
 
 ## Archived Scripts
 
+### Python/pip Installation (`scripts/install-python.sh`)
+- **Replaced by**: [`actions/setup-python`](https://github.com/actions/setup-python)
+- **Reason**: The official action includes pip by default and provides Python version management
+
 ### Node.js Installation (`scripts/install-nodejs.sh`)
 - **Replaced by**: [`actions/setup-node`](https://github.com/actions/setup-node)
 - **Reason**: The official action provides better caching, version management, and is optimized for CI/CD
@@ -18,6 +22,10 @@ This directory contains installation scripts that have been archived in favor of
   - Helm: [`azure/setup-helm`](https://github.com/azure/setup-helm)
   - Kustomize: [`imranismail/setup-kustomize`](https://github.com/imranismail/setup-kustomize)
 - **Reason**: These actions provide version management, caching, and are maintained by the community
+
+### Ansible Installation (`scripts/install-ansible.sh`)
+- **Replaced by**: pip install after `actions/setup-python`
+- **Reason**: Ansible is a Python package best installed via pip in workflows
 
 ## Usage
 
@@ -51,4 +59,15 @@ steps:
     uses: azure/setup-helm@v4
     with:
       version: 'latest'
+      
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.x'
+      cache: 'pip'
+      
+  - name: Install Ansible
+    run: |
+      python -m pip install --upgrade pip
+      pip install ansible
 ```

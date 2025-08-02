@@ -19,10 +19,6 @@ setup:
       script: "scripts/install-powershell.sh"
       description: "Installs PowerShell Core"
       
-    - name: "Install Node.js and npm"
-      script: "scripts/install-nodejs.sh"
-      description: "Installs Node.js and npm package manager"
-      
     - name: "Install Azure CLI"
       script: "scripts/install-azure-cli.sh"
       description: "Installs Azure CLI"
@@ -50,10 +46,6 @@ setup:
     - name: "Install GitHub CLI"
       script: "scripts/install-github-cli.sh"
       description: "Installs GitHub CLI (gh)"
-      
-    - name: "Install .NET SDK"
-      script: "scripts/install-dotnet-sdk.sh"
-      description: "Installs .NET SDK (both LTS and latest versions)"
       
     - name: "Install network tools"
       script: "scripts/install-network-tools.sh"

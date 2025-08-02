@@ -48,7 +48,8 @@ else
     apt-get install -y --no-install-recommends \
         wget \
         apt-transport-https \
-        software-properties-common
+        software-properties-common \
+        lsb-release
     
     # Detect Ubuntu version
     UBUNTU_VERSION=$(lsb_release -rs)

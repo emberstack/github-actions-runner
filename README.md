@@ -63,10 +63,6 @@ The following tools are already available in the GitHub Actions runner base imag
 ### Programming Languages & Runtimes
 - **Python 3** with pip - Python interpreter and package manager
 - **PowerShell Core** - Cross-platform PowerShell
-- **Node.js** (LTS 20.x) with npm - JavaScript runtime and package manager
-- **.NET SDK**
-  - LTS version - Long Term Support release
-  - STS version - Standard Term Support (latest) release
 
 ### Cloud & Infrastructure Tools
 - **Azure CLI** - Azure cloud management
@@ -238,3 +234,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built on top of [actions/runner](https://github.com/actions/runner) official images
 - Inspired by the need for comprehensive CI/CD environments
 - Thanks to all contributors and the open-source community
+
+## Note on .NET SDK and Node.js
+
+While .NET SDK and Node.js installation scripts are available in the `src/_archive/scripts/` directory, we recommend using GitHub Actions' official setup actions for these tools in your workflows:
+
+- **Node.js**: Use [`actions/setup-node`](https://github.com/actions/setup-node)
+- **.NET SDK**: Use [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet)
+
+These official actions provide better caching, version management, and are optimized for CI/CD environments.

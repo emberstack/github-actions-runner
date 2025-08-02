@@ -35,10 +35,6 @@ setup:
       script: "scripts/install-docker-tools.sh"
       description: "Installs Docker Compose plugin"
       
-    - name: "Install Kubernetes tools"
-      script: "scripts/install-kubernetes-tools.sh"
-      description: "Installs kubectl, helm, and kustomize"
-      
     - name: "Install yamllint"
       script: "scripts/install-yamllint.sh"
       description: "Installs yamllint for YAML validation"

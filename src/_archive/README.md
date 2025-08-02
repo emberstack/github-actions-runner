@@ -12,6 +12,13 @@ This directory contains installation scripts that have been archived in favor of
 - **Replaced by**: [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet)
 - **Reason**: The official action handles multiple SDK versions, caching, and is maintained by Microsoft
 
+### Kubernetes Tools Installation (`scripts/install-kubernetes-tools.sh`)
+- **Replaced by**: 
+  - kubectl: [`azure/setup-kubectl`](https://github.com/azure/setup-kubectl)
+  - Helm: [`azure/setup-helm`](https://github.com/azure/setup-helm)
+  - Kustomize: [`imranismail/setup-kustomize`](https://github.com/imranismail/setup-kustomize)
+- **Reason**: These actions provide version management, caching, and are maintained by the community
+
 ## Usage
 
 These scripts are preserved for reference and can still be used if you need to install these tools directly in the Docker image. However, for GitHub Actions workflows, we recommend using the official setup actions.
@@ -34,4 +41,14 @@ steps:
       dotnet-version: |
         8.0.x
         9.0.x
+        
+  - name: Setup kubectl
+    uses: azure/setup-kubectl@v4
+    with:
+      version: 'latest'
+      
+  - name: Setup Helm
+    uses: azure/setup-helm@v4
+    with:
+      version: 'latest'
 ```

@@ -73,11 +73,6 @@ The following tools are already available in the GitHub Actions runner base imag
 - **Docker Compose Plugin** - Multi-container orchestration (latest)
 - **Docker Buildx** - Advanced Docker builds (pre-installed in base image)
 
-### Kubernetes Tools
-- **kubectl** - Kubernetes CLI (latest stable)
-- **Helm** - Kubernetes package manager (latest)
-- **Kustomize** - Kubernetes configuration management (latest)
-
 ### Development Tools
 - **Git** - Version control (pre-installed in base image)
 - **GitHub CLI** (`gh`) - GitHub operations (latest)
@@ -235,11 +230,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by the need for comprehensive CI/CD environments
 - Thanks to all contributors and the open-source community
 
-## Note on .NET SDK and Node.js
+## Note on .NET SDK, Node.js, and Kubernetes Tools
 
-While .NET SDK and Node.js installation scripts are available in the `src/_archive/scripts/` directory, we recommend using GitHub Actions' official setup actions for these tools in your workflows:
+While installation scripts for these tools are available in the `src/_archive/scripts/` directory, we recommend using GitHub Actions' official setup actions or marketplace actions in your workflows:
 
 - **Node.js**: Use [`actions/setup-node`](https://github.com/actions/setup-node)
 - **.NET SDK**: Use [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet)
+- **kubectl**: Use [`azure/setup-kubectl`](https://github.com/azure/setup-kubectl)
+- **Helm**: Use [`azure/setup-helm`](https://github.com/azure/setup-helm)
+- **Kustomize**: Use [`imranismail/setup-kustomize`](https://github.com/imranismail/setup-kustomize)
 
-These official actions provide better caching, version management, and are optimized for CI/CD environments.
+These actions provide better caching, version management, and are optimized for CI/CD environments.

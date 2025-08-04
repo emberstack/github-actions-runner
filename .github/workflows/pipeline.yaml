@@ -77,7 +77,7 @@ jobs:
         with:
           configFilePath: GitVersion.yaml
           overrideConfig: |
-            next-version=${{ steps.extract_base_version.outputs.version }}
+            next-version: ${{ steps.extract_base_version.outputs.version }}
 
       - name: tools - detect changes
         id: pathsFilter

@@ -16,7 +16,13 @@
       "Bash(docker logs:*)",
       "Bash(docker exec:*)",
       "Bash(docker stop:*)",
-      "Bash(docker rm:*)"
+      "Bash(docker rm:*)",
+      "Bash(git tag:*)",
+      "Bash(dotnet tool install:*)",
+      "Bash(dotnet-gitversion:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

@@ -1,6 +1,6 @@
-assembly-versioning-scheme: MajorMinorPatch
-assembly-file-versioning-scheme: MajorMinorPatch
-mode: ContinuousDelivery
+assembly-versioning-scheme: MajorMinorPatchTag
+assembly-file-versioning-scheme: MajorMinorPatchTag
+mode: ContinuousDeployment
 tag-prefix: '[vV]'
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
@@ -8,8 +8,26 @@ patch-version-bump-message: '\+semver:\s?(fix|patch)'
 no-bump-message: '\+semver:\s?(none|skip)'
 tag-pre-release-weight: 60000
 commit-message-incrementing: Enabled
+commits-since-version-source-padding: 0
 
 branches:
+  main:
+    mode: ContinuousDeployment
+    label: ''
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    regex: ^master$|^main$
+    source-branches:
+    - develop
+    - release
+    - feature
+    - hotfix
+    tracks-release-branches: false
+    is-release-branch: true
+    is-main-branch: true
+    pre-release-weight: 55000
+
   develop:
     mode: ContinuousDeployment
     label: develop
@@ -21,20 +39,6 @@ branches:
     is-release-branch: false
     is-main-branch: false
     pre-release-weight: 0
-
-  main:
-    mode: ContinuousDeployment
-    label: ''
-    increment: Patch
-    track-merge-target: false
-    regex: ^master$|^main$
-    source-branches:
-    - develop
-    - release
-    tracks-release-branches: false
-    is-release-branch: true
-    is-main-branch: true
-    pre-release-weight: 55000
 
   release:
     mode: ContinuousDelivery

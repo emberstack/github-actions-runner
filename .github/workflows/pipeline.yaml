@@ -39,7 +39,10 @@ jobs:
     outputs:
       pathsFilter_src: ${{ steps.pathsFilter.outputs.src }}
       gitVersion_SemVer: ${{ steps.gitversion.outputs.GitVersion_SemVer }}
+      gitVersion_FullSemVer: ${{ steps.gitversion.outputs.GitVersion_FullSemVer }}
+      gitVersion_InformationalVersion: ${{ steps.gitversion.outputs.GitVersion_InformationalVersion }}
       gitVersion_AssemblySemFileVer: ${{ steps.gitversion.outputs.GitVersion_AssemblySemFileVer }}
+      base_version: ${{ steps.extract_base_version.outputs.version }}
       build: ${{ steps.evaluate_build.outputs.result }}
       build_push: ${{ steps.evaluate_build_push.outputs.result }}
       build_configuration: ${{ steps.evaluate_build_configuration.outputs.result }}
@@ -61,11 +64,20 @@ jobs:
           versionSpec: "6.x"
           preferLatestVersion: true
 
+      - name: extract - base version from Dockerfile
+        id: extract_base_version
+        run: |
+          BASE_VERSION=$(grep "^FROM ghcr.io/actions/actions-runner:" ${{ env.container_image_build_dockerfile }} | cut -d':' -f2)
+          echo "Extracted base version: $BASE_VERSION"
+          echo "version=$BASE_VERSION" >> $GITHUB_OUTPUT
+
       - name: gitversion - execute
         id: gitversion
         uses: gittools/actions/gitversion/execute@v4.0.1
         with:
           configFilePath: GitVersion.yaml
+          overrideConfig: |
+            next-version=${{ steps.extract_base_version.outputs.version }}
 
       - name: tools - detect changes
         id: pathsFilter
@@ -130,6 +142,7 @@ jobs:
       build_configuration: ${{ needs.discovery.outputs.build_configuration }}
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
       gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+      base_version: ${{ needs.discovery.outputs.base_version }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -170,8 +183,8 @@ jobs:
             org.opencontainers.image.version=${{ env.gitVersion_SemVer }}
             org.opencontainers.image.revision=${{ github.sha }}
           tags: |
-            ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
-            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+            ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.base_version }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
 
 
 
@@ -182,6 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      base_version: ${{ needs.discovery.outputs.base_version }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -206,10 +220,10 @@ jobs:
       - name: docker - create and push multi-arch manifest
         run: |
           docker buildx imagetools create \
-            --tag ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }} \
-            --tag ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }} \
-            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-amd64 \
-            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}-arm64
+            --tag ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:${{ env.base_version }} \
+            --tag ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }} \
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}-amd64 \
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}-arm64
 
       - name: artifacts - upload readme
         uses: actions/upload-artifact@v4
@@ -225,7 +239,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      gitVersion_FullSemVer: ${{ needs.discovery.outputs.gitVersion_FullSemVer }}
+      gitVersion_InformationalVersion: ${{ needs.discovery.outputs.gitVersion_InformationalVersion }}
       gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+      base_version: ${{ needs.discovery.outputs.base_version }}
     steps:
       - name: tools - docker - login ghcr.io
         uses: docker/login-action@v3
@@ -249,15 +266,19 @@ jobs:
           docker buildx imagetools create \
             --tag ${{ env.container_image_repository_dockerhub }}/${{ env.container_image }}:latest \
             --tag ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:latest \
-            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.gitVersion_SemVer }}
+            ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}
 
       - name: github - release - create
         uses: softprops/action-gh-release@v2
         with:
           repository: ${{ github.repository }}
-          name: v${{ env.gitVersion_SemVer }}
-          tag_name: v${{ env.gitVersion_SemVer }}
-          body: The release process is automated.
+          name: v${{ env.gitVersion_InformationalVersion }}
+          tag_name: v${{ env.gitVersion_InformationalVersion }}
+          body: |
+            Docker image version: `${{ env.base_version }}`
+            Release version: `${{ env.gitVersion_InformationalVersion }}`
+            
+            The release process is automated.
           generate_release_notes: true
           token: ${{ secrets.ES_GITHUB_PAT }}
 

@@ -43,6 +43,7 @@ jobs:
       gitVersion_InformationalVersion: ${{ steps.gitversion.outputs.GitVersion_InformationalVersion }}
       gitVersion_AssemblySemFileVer: ${{ steps.gitversion.outputs.GitVersion_AssemblySemFileVer }}
       base_version: ${{ steps.extract_base_version.outputs.version }}
+      full_version: ${{ steps.extract_base_version.outputs.full_version }}
       build: ${{ steps.evaluate_build.outputs.result }}
       build_push: ${{ steps.evaluate_build_push.outputs.result }}
       build_configuration: ${{ steps.evaluate_build_configuration.outputs.result }}
@@ -64,20 +65,34 @@ jobs:
           versionSpec: "6.x"
           preferLatestVersion: true
 
-      - name: extract - base version from Dockerfile
+      - name: extract - base version from Dockerfile and calculate version
         id: extract_base_version
         run: |
           BASE_VERSION=$(grep "^FROM ghcr.io/actions/actions-runner:" ${{ env.container_image_build_dockerfile }} | cut -d':' -f2)
           echo "Extracted base version: $BASE_VERSION"
           echo "version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          
+          # Calculate build number based on commits since last tag with this base version
+          BUILD_NUMBER=1
+          LAST_TAG=$(git tag --list "v${BASE_VERSION}+*" 2>/dev/null | sort -V | tail -1 || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            # Extract the build number from the last tag and increment
+            LAST_BUILD=$(echo "$LAST_TAG" | sed "s/v${BASE_VERSION}+//")
+            BUILD_NUMBER=$((LAST_BUILD + 1))
+          else
+            # Count commits since we started using this base version
+            BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo 1)
+          fi
+          
+          FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
+          echo "Full version with build metadata: $FULL_VERSION"
+          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: gitversion - execute
         id: gitversion
         uses: gittools/actions/gitversion/execute@v4.0.1
         with:
           configFilePath: GitVersion.yaml
-          overrideConfig: |
-            next-version: ${{ steps.extract_base_version.outputs.version }}
 
       - name: tools - detect changes
         id: pathsFilter
@@ -243,6 +258,7 @@ jobs:
       gitVersion_InformationalVersion: ${{ needs.discovery.outputs.gitVersion_InformationalVersion }}
       gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
       base_version: ${{ needs.discovery.outputs.base_version }}
+      full_version: ${{ needs.discovery.outputs.full_version }}
     steps:
       - name: tools - docker - login ghcr.io
         uses: docker/login-action@v3
@@ -272,11 +288,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           repository: ${{ github.repository }}
-          name: v${{ env.gitVersion_InformationalVersion }}
-          tag_name: v${{ env.gitVersion_InformationalVersion }}
+          name: v${{ env.full_version }}
+          tag_name: v${{ env.full_version }}
           body: |
             Docker image version: `${{ env.base_version }}`
-            Release version: `${{ env.gitVersion_InformationalVersion }}`
+            Release version: `${{ env.full_version }}`
             
             The release process is automated.
           generate_release_notes: true

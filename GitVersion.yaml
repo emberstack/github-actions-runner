@@ -1,6 +1,6 @@
 assembly-versioning-scheme: MajorMinorPatchTag
 assembly-file-versioning-scheme: MajorMinorPatchTag
-mode: ContinuousDeployment
+mode: Mainline
 tag-prefix: '[vV]'
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
@@ -11,20 +11,8 @@ commit-message-incrementing: Enabled
 
 branches:
   main:
-    mode: ContinuousDeployment
-    label: ''
-    increment: None
-    track-merge-target: false
     regex: ^master$|^main$
-    source-branches:
-    - develop
-    - release
-    - feature
-    - hotfix
-    tracks-release-branches: false
-    is-release-branch: true
     is-main-branch: true
-    pre-release-weight: 55000
 
   develop:
     mode: ContinuousDeployment

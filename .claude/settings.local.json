@@ -22,7 +22,8 @@
       "Bash(dotnet-gitversion:*)",
       "Bash(ls:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

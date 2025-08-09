@@ -72,6 +72,22 @@ docker run -d \
   emberstack/github-actions-runner:latest
 ```
 
+#### Ephemeral Mode (Single Job)
+```bash
+docker run -d \
+  --name github-runner \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_EPHEMERAL="true" \
+  emberstack/github-actions-runner:latest
+```
+
+In ephemeral mode, the runner will:
+- Process only one job and then automatically deregister
+- Provide a clean, isolated environment for each workflow run
+- Be ideal for autoscaling scenarios and enhanced security
+- Ensure no job state or secrets persist between runs
+
 #### Environment Variables
 - `GITHUB_RUNNER_URL` (required): Repository, organization, or enterprise URL
 - `GITHUB_RUNNER_PAT` or `GITHUB_RUNNER_TOKEN` (required): Authentication token
@@ -81,6 +97,7 @@ docker run -d \
 - `GITHUB_RUNNER_WORKDIR` (optional): Working directory for jobs
 - `GITHUB_RUNNER_GID` (optional): Custom GID to create github-actions-runner group
 - `GITHUB_RUNNER_DOCKER_SOCK` (optional): Set to "true" to auto-configure Docker socket access
+- `GITHUB_RUNNER_EPHEMERAL` (optional): Set to "true" to configure runner in ephemeral mode (single job only)
 
 ##### Pre-configured Environment Variables
 The following environment variables are set in the Docker image:

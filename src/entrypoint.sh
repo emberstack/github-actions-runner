@@ -113,6 +113,12 @@ configure_runner() {
         CONFIG_CMD="${CONFIG_CMD} --work \"${GITHUB_RUNNER_WORKDIR}\""
     fi
     
+    # Add ephemeral flag if requested
+    if [ "${GITHUB_RUNNER_EPHEMERAL}" = "true" ]; then
+        CONFIG_CMD="${CONFIG_CMD} --ephemeral"
+        echo "Configuring runner in ephemeral mode (will process only one job)"
+    fi
+    
     # Execute configuration
     eval ${CONFIG_CMD}
 }

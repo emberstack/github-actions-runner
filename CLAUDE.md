@@ -156,6 +156,15 @@ Both registries receive multi-architecture manifests supporting AMD64 and ARM64.
    - `fix: correct installation issue` (patch version bump)
    - `feat!: breaking change` or `+semver:major` (major version bump)
 
+### Ephemeral Mode Support
+
+The runner supports ephemeral mode through the `GITHUB_RUNNER_EPHEMERAL` environment variable:
+- When set to `"true"`, the runner will be configured with the `--ephemeral` flag
+- Each runner will process only one job before automatically deregistering
+- This provides clean, isolated environments for each workflow run
+- Ideal for autoscaling scenarios and enhanced security requirements
+- No job state or secrets persist between runs
+
 ### CI/CD Pipeline Details
 
 The pipeline (`pipeline.yaml`) consists of:

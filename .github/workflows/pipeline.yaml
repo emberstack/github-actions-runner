@@ -64,10 +64,8 @@ jobs:
             # Extract the build number from the last tag and increment
             LAST_BUILD=$(echo "$LAST_TAG" | sed "s/v${BASE_VERSION}+//")
             BUILD_NUMBER=$((LAST_BUILD + 1))
-          else
-            # Count commits since we started using this base version
-            BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo 1)
           fi
+          # If no matching tags exist for this base version, BUILD_NUMBER stays at 1
           
           FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
           echo "Full version with build metadata: $FULL_VERSION"

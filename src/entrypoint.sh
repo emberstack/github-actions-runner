@@ -129,10 +129,10 @@ setup_groups() {
     if [ -n "${GITHUB_RUNNER_GID}" ]; then
         echo "Creating github-actions-runner group with GID ${GITHUB_RUNNER_GID}..."
         sudo groupadd -f -g ${GITHUB_RUNNER_GID} github-actions-runner || true
-        sudo usermod -aG github-actions-runner runner
+        sudo usermod -aG github-actions-runner runner || true
         echo "Added runner user to github-actions-runner group"
     fi
-    
+
     # Handle Docker socket access if requested
     if [ "${GITHUB_RUNNER_DOCKER_SOCK}" = "true" ]; then
         if [ -S /var/run/docker.sock ]; then
@@ -147,11 +147,18 @@ setup_groups() {
                 echo "Docker socket detected with GID ${DOCKER_GID}"
             fi
 
-            # Create group with the determined GID
-            echo "Creating github-actions-runner-dockersock group with GID ${DOCKER_GID}..."
-            sudo groupadd -f -g ${DOCKER_GID} github-actions-runner-dockersock || true
-            sudo usermod -aG github-actions-runner-dockersock runner
-            echo "Added runner user to github-actions-runner-dockersock group"
+            # Check if GID is 0 (root)
+            if [ "${DOCKER_GID}" = "0" ]; then
+                echo "WARNING: Docker socket has GID 0 (root group)."
+                echo "Cannot safely add runner to root group."
+                echo "Please set GITHUB_RUNNER_DOCKER_SOCK_GID to a non-root GID or handle permissions differently."
+            else
+                # Create group with the determined GID
+                echo "Creating github-actions-runner-dockersock group with GID ${DOCKER_GID}..."
+                sudo groupadd -f -g ${DOCKER_GID} github-actions-runner-dockersock || true
+                sudo usermod -aG github-actions-runner-dockersock runner || true
+                echo "Added runner user to github-actions-runner-dockersock group"
+            fi
         else
             echo "WARNING: GITHUB_RUNNER_DOCKER_SOCK=true but /var/run/docker.sock not found"
         fi
@@ -178,11 +185,13 @@ main() {
     
     # Start the runner in background to capture PID
     echo "Starting GitHub Actions runner..."
-    ./run.sh &
+
+    # Use sudo to start with fresh session that has all groups
+    sudo -u runner -i ./run.sh &
     RUNNER_PID=$!
-    
+
     echo "Runner started with PID: $RUNNER_PID"
-    
+
     # Wait for the runner process
     wait $RUNNER_PID
 }

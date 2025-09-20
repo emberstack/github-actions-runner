@@ -97,6 +97,7 @@ In ephemeral mode, the runner will:
 - `GITHUB_RUNNER_WORKDIR` (optional): Working directory for jobs
 - `GITHUB_RUNNER_GID` (optional): Custom GID to create github-actions-runner group
 - `GITHUB_RUNNER_DOCKER_SOCK` (optional): Set to "true" to auto-configure Docker socket access
+- `GITHUB_RUNNER_DOCKER_SOCK_GID` (optional): Explicit GID for Docker socket group (overrides auto-detection when socket exists)
 - `GITHUB_RUNNER_EPHEMERAL` (optional): Set to "true" to configure runner in ephemeral mode (single job only)
 
 ##### Pre-configured Environment Variables

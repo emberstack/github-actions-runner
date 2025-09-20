@@ -136,9 +136,19 @@ setup_groups() {
     # Handle Docker socket access if requested
     if [ "${GITHUB_RUNNER_DOCKER_SOCK}" = "true" ]; then
         if [ -S /var/run/docker.sock ]; then
-            DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
-            echo "Docker socket detected with GID ${DOCKER_GID}"
-            echo "Creating github-actions-runner-dockersock group..."
+            # Socket exists, determine the GID to use
+            if [ -n "${GITHUB_RUNNER_DOCKER_SOCK_GID}" ]; then
+                # Use explicitly configured GID
+                DOCKER_GID="${GITHUB_RUNNER_DOCKER_SOCK_GID}"
+                echo "Using configured Docker socket GID ${DOCKER_GID}"
+            else
+                # Auto-detect GID from socket
+                DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+                echo "Docker socket detected with GID ${DOCKER_GID}"
+            fi
+
+            # Create group with the determined GID
+            echo "Creating github-actions-runner-dockersock group with GID ${DOCKER_GID}..."
             sudo groupadd -f -g ${DOCKER_GID} github-actions-runner-dockersock || true
             sudo usermod -aG github-actions-runner-dockersock runner
             echo "Added runner user to github-actions-runner-dockersock group"

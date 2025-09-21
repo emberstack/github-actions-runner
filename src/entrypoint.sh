@@ -77,55 +77,58 @@ cleanup_runner() {
 # Function to configure runner
 configure_runner() {
     echo "Configuring GitHub Actions runner..."
-    
-    # Build configuration command
-    CONFIG_CMD="./config.sh --url \"${GITHUB_RUNNER_URL}\" --unattended --replace"
-    
+
+    # Build configuration command using array for safety (no eval needed)
+    CONFIG_ARGS=(
+        "--url" "${GITHUB_RUNNER_URL}"
+        "--unattended"
+        "--replace"
+    )
+
     # Add authentication (prefer PAT over TOKEN)
     if [ -n "${GITHUB_RUNNER_PAT}" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --pat \"${GITHUB_RUNNER_PAT}\""
+        CONFIG_ARGS+=("--pat" "${GITHUB_RUNNER_PAT}")
     elif [ -n "${GITHUB_RUNNER_TOKEN}" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --token \"${GITHUB_RUNNER_TOKEN}\""
+        CONFIG_ARGS+=("--token" "${GITHUB_RUNNER_TOKEN}")
     else
         echo "ERROR: Either GITHUB_RUNNER_PAT or GITHUB_RUNNER_TOKEN must be provided"
         exit 1
     fi
-    
-    # Add runner name (with hostname preference option)
-    if [ "${GITHUB_RUNNER_USE_HOSTNAME}" = "true" ]; then
-        # When flag is true, always use hostname regardless of GITHUB_RUNNER_NAME
-        CONFIG_CMD="${CONFIG_CMD} --name \"$(hostname)\""
-    elif [ -n "${GITHUB_RUNNER_NAME}" ]; then
-        # Use provided name if flag is not true and name is provided
-        CONFIG_CMD="${CONFIG_CMD} --name \"${GITHUB_RUNNER_NAME}\""
+
+    # Add runner name (with safe environment variable expansion)
+    if [ -n "${GITHUB_RUNNER_NAME}" ]; then
+        # Safely expand environment variables using envsubst
+        # This prevents code injection while allowing any env var to be used
+        EXPANDED_NAME=$(echo "${GITHUB_RUNNER_NAME}" | envsubst)
+        CONFIG_ARGS+=("--name" "${EXPANDED_NAME}")
     else
-        # Fall back to hostname if no name provided and flag is not true
-        CONFIG_CMD="${CONFIG_CMD} --name \"$(hostname)\""
+        # Fall back to hostname if no name provided
+        CONFIG_ARGS+=("--name" "$(hostname)")
     fi
-    
+
     # Add labels if provided
     if [ -n "${GITHUB_RUNNER_LABELS}" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --labels \"${GITHUB_RUNNER_LABELS}\""
+        CONFIG_ARGS+=("--labels" "${GITHUB_RUNNER_LABELS}")
     fi
-    
+
     # Add runner group if provided
     if [ -n "${GITHUB_RUNNER_GROUP}" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --runnergroup \"${GITHUB_RUNNER_GROUP}\""
+        CONFIG_ARGS+=("--runnergroup" "${GITHUB_RUNNER_GROUP}")
     fi
-    
+
     # Add work directory if provided
     if [ -n "${GITHUB_RUNNER_WORKDIR}" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --work \"${GITHUB_RUNNER_WORKDIR}\""
+        CONFIG_ARGS+=("--work" "${GITHUB_RUNNER_WORKDIR}")
     fi
-    
+
     # Add ephemeral flag if requested
     if [ "${GITHUB_RUNNER_EPHEMERAL}" = "true" ]; then
-        CONFIG_CMD="${CONFIG_CMD} --ephemeral"
+        CONFIG_ARGS+=("--ephemeral")
         echo "Configuring runner in ephemeral mode (will process only one job)"
     fi
-    
-    # Execute configuration
-    eval ${CONFIG_CMD}
+
+    # Execute configuration safely without eval
+    ./config.sh "${CONFIG_ARGS[@]}"
 }
 
 # Function to setup groups

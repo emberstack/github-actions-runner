@@ -82,6 +82,46 @@ docker run -d \
   emberstack/github-actions-runner:latest
 ```
 
+#### Dynamic Runner Naming with Environment Variables
+The `GITHUB_RUNNER_NAME` supports safe environment variable expansion, allowing dynamic runner names based on any runtime environment variable:
+
+```bash
+# Use container hostname (container ID in Docker)
+docker run -d \
+  --name github-runner \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_NAME='$HOSTNAME' \
+  emberstack/github-actions-runner:latest
+
+# Combine with prefix/suffix
+docker run -d \
+  --name github-runner \
+  -e GITHUB_RUNNER_URL="https://github.com/your-org/your-repo" \
+  -e GITHUB_RUNNER_PAT="your-personal-access-token" \
+  -e GITHUB_RUNNER_NAME='runner-$HOSTNAME' \
+  emberstack/github-actions-runner:latest
+
+# Use in Docker Compose with custom hostname
+services:
+  runner:
+    image: emberstack/github-actions-runner:latest
+    hostname: worker-node-1
+    environment:
+      GITHUB_RUNNER_URL: "https://github.com/your-org/your-repo"
+      GITHUB_RUNNER_PAT: "your-personal-access-token"
+      GITHUB_RUNNER_NAME: 'runner-$HOSTNAME'  # Will be "runner-worker-node-1"
+```
+
+**Examples of Supported Variables:**
+- `$HOSTNAME` or `${HOSTNAME}` - The container's hostname (container ID by default in Docker)
+- `$USER` or `${USER}` - The current user (typically "runner")
+- `$HOME` or `${HOME}` - The user's home directory
+- `$PATH` - System PATH
+- Any custom environment variable you define
+
+**Note:** Use single quotes (`'`) to prevent variable expansion on the host shell, allowing expansion inside the container. Variable expansion is performed safely using `envsubst`, preventing code injection.
+
 In ephemeral mode, the runner will:
 - Process only one job and then automatically deregister
 - Provide a clean, isolated environment for each workflow run
@@ -91,8 +131,7 @@ In ephemeral mode, the runner will:
 #### Environment Variables
 - `GITHUB_RUNNER_URL` (required): Repository, organization, or enterprise URL
 - `GITHUB_RUNNER_PAT` or `GITHUB_RUNNER_TOKEN` (required): Authentication token
-- `GITHUB_RUNNER_NAME` (optional): Runner name (defaults to hostname, can be overridden by GITHUB_RUNNER_USE_HOSTNAME)
-- `GITHUB_RUNNER_USE_HOSTNAME` (optional): Set to "true" to always use container hostname as runner name, overriding GITHUB_RUNNER_NAME
+- `GITHUB_RUNNER_NAME` (optional): Runner name (defaults to hostname). Supports safe environment variable expansion using standard shell syntax
 - `GITHUB_RUNNER_LABELS` (optional): Comma-separated list of labels
 - `GITHUB_RUNNER_GROUP` (optional): Runner group name
 - `GITHUB_RUNNER_WORKDIR` (optional): Working directory for jobs

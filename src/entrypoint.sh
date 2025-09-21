@@ -194,6 +194,16 @@ main() {
 
     # Wait for the runner process
     wait $RUNNER_PID
+    RUNNER_EXIT_CODE=$?
+
+    echo "Runner process exited with code: $RUNNER_EXIT_CODE"
+
+    # Clean up the runner registration
+    echo "Performing cleanup..."
+    cleanup_runner
+
+    # Exit with the same code as the runner
+    exit $RUNNER_EXIT_CODE
 }
 
 # Execute main function

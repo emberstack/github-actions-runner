@@ -91,7 +91,8 @@ In ephemeral mode, the runner will:
 #### Environment Variables
 - `GITHUB_RUNNER_URL` (required): Repository, organization, or enterprise URL
 - `GITHUB_RUNNER_PAT` or `GITHUB_RUNNER_TOKEN` (required): Authentication token
-- `GITHUB_RUNNER_NAME` (optional): Runner name (defaults to hostname)
+- `GITHUB_RUNNER_NAME` (optional): Runner name (defaults to hostname, can be overridden by GITHUB_RUNNER_USE_HOSTNAME)
+- `GITHUB_RUNNER_USE_HOSTNAME` (optional): Set to "true" to always use container hostname as runner name, overriding GITHUB_RUNNER_NAME
 - `GITHUB_RUNNER_LABELS` (optional): Comma-separated list of labels
 - `GITHUB_RUNNER_GROUP` (optional): Runner group name
 - `GITHUB_RUNNER_WORKDIR` (optional): Working directory for jobs

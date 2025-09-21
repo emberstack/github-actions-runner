@@ -91,10 +91,15 @@ configure_runner() {
         exit 1
     fi
     
-    # Add runner name (use hostname as default)
-    if [ -n "${GITHUB_RUNNER_NAME}" ]; then
+    # Add runner name (with hostname preference option)
+    if [ "${GITHUB_RUNNER_USE_HOSTNAME}" = "true" ]; then
+        # When flag is true, always use hostname regardless of GITHUB_RUNNER_NAME
+        CONFIG_CMD="${CONFIG_CMD} --name \"$(hostname)\""
+    elif [ -n "${GITHUB_RUNNER_NAME}" ]; then
+        # Use provided name if flag is not true and name is provided
         CONFIG_CMD="${CONFIG_CMD} --name \"${GITHUB_RUNNER_NAME}\""
     else
+        # Fall back to hostname if no name provided and flag is not true
         CONFIG_CMD="${CONFIG_CMD} --name \"$(hostname)\""
     fi
     

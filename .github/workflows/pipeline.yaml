@@ -275,7 +275,7 @@ jobs:
           path: .
 
       - name: dockerhub - readme - sync
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.ES_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ES_DOCKERHUB_PAT }}

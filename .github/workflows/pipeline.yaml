@@ -215,7 +215,7 @@ jobs:
             ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}-arm64
 
       - name: artifacts - upload readme
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: readme
           path: README.md
@@ -269,7 +269,7 @@ jobs:
           token: ${{ secrets.ES_GITHUB_PAT }}
 
       - name: artifacts - download readme
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: readme
           path: .

@@ -154,10 +154,10 @@ jobs:
           password: ${{ secrets.ES_DOCKERHUB_PAT }}
 
       - name: tools - docker - setup buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: docker - build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ env.container_image_build_context }}
           file: ${{ env.container_image_build_dockerfile }}
@@ -204,7 +204,7 @@ jobs:
           password: ${{ secrets.ES_DOCKERHUB_PAT }}
 
       - name: tools - docker - setup buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: docker - create and push multi-arch manifest
         run: |
@@ -245,7 +245,7 @@ jobs:
           password: ${{ secrets.ES_DOCKERHUB_PAT }}
 
       - name: tools - docker - setup buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: docker - tag and push - latest
         run: |

@@ -255,7 +255,7 @@ jobs:
             ${{ env.container_image_repository_ghcr }}/${{ env.container_image }}:${{ env.base_version }}
 
       - name: github - release - create
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           repository: ${{ github.repository }}
           name: v${{ env.full_version }}
